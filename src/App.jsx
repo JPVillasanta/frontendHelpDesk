@@ -1,122 +1,17 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
-
-export default App
+import {useEffect,useState} from "react";
+import {BrowserRouter,Link,Navigate,Route,Routes,useNavigate} from "react-router-dom";
+import {AuthProvider,useAuth} from "./context/AuthContext";
+import {productApi,adminApi} from "./services/api";
+import ProductForm from "./components/ProductForm";
+import ProductTable from "./components/ProductTable";
+import "./App.css";
+function Loading(){return <div className="center">Loading…</div>}
+function Guard({children,admin=false}){const {user,loading}=useAuth();if(loading)return <Loading/>;if(!user)return <Navigate to="/login" replace/>;if(admin&&user.role!=="admin")return <Navigate to="/" replace/>;return children}
+function Login(){const {user,login}=useAuth(),nav=useNavigate();const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);if(user)return <Navigate to="/" replace/>;async function submit(e){e.preventDefault();setError("");setBusy(true);try{await login({email,password});nav("/");}catch(err){setError(err.message)}finally{setBusy(false)}}return <main className="login-page"><form className="panel login" onSubmit={submit}><div className="brand-mark">P</div><p className="eyebrow">PRODUCT WORKSPACE</p><h1>Welcome back</h1><p className="muted">Sign in to manage your products.</p>{error&&<div className="alert">{error}</div>}<label>Email<input required type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Password<input required type="password" value={password} onChange={e=>setPassword(e.target.value)}/></label><button disabled={busy}>{busy?"Signing in…":"Sign in"}</button></form></main>}
+function Shell({children}){const {user,logout}=useAuth(),nav=useNavigate();async function leave(){await logout();nav("/login")}return <div className="shell"><header className="topbar"><Link to="/" className="wordmark"><span className="brand-mark small">P</span> ProductDesk</Link><nav><Link to="/">My products</Link>{user.role==="admin"&&<Link to="/admin">Admin</Link>}</nav><div className="account"><span>{user.name} <small>{user.role}</small></span><button className="secondary" onClick={leave}>Log out</button></div></header><main className="content">{children}</main><footer>ProductDesk · CCS112 lab starter</footer></div>}
+function Dashboard(){const [products,setProducts]=useState([]),[search,setSearch]=useState(""),[editing,setEditing]=useState(null),[error,setError]=useState(""),[busy,setBusy]=useState(false);async function load(){try{const r=await productApi.list(search);setProducts(r.data||[]);setError("")}catch(e){setError(e.message)}}useEffect(()=>{load()},[search]);async function save(data){setBusy(true);try{editing?await productApi.update(editing.id,data):await productApi.create(data);setEditing(null);await load()}catch(e){setError(e.message)}finally{setBusy(false)}}async function remove(p){if(!window.confirm(`Delete "${p.name}"?`))return;try{await productApi.remove(p.id);await load()}catch(e){setError(e.message)}}return <Shell><div className="heading"><div><p className="eyebrow">WORKSPACE</p><h1>Your products</h1><p className="muted">Create and maintain your product catalog.</p></div><span className="count">{products.length} shown</span></div>{error&&<div className="alert">{error}</div>}<ProductForm key={editing?.id||"new"} initial={editing||undefined} onSubmit={save} onCancel={editing?()=>setEditing(null):undefined} busy={busy}/><section className="panel"><div className="section-head"><h2>Product list</h2><input className="search" placeholder="Search products…" value={search} onChange={e=>setSearch(e.target.value)}/></div><ProductTable products={products} onEdit={setEditing} onDelete={remove}/></section></Shell>}
+function Admin(){const [stats,setStats]=useState(null),[users,setUsers]=useState([]),[products,setProducts]=useState([]),[error,setError]=useState("");async function load(){try{const [s,u,p]=await Promise.all([adminApi.stats(),adminApi.users(),adminApi.products()]);setStats(s);setUsers(u.data||[]);setProducts(p.data||[])}catch(e){setError(e.message)}}useEffect(()=>{load()},[]);async function delUser(u){if(!confirm(`Delete user ${u.name} and their products?`))return;try{await adminApi.removeUser(u.id);load()}catch(e){setError(e.message)}}async function delProduct(p){if(!confirm(`Delete ${p.name}?`))return;try{await adminApi.removeProduct(p.id);load()}catch(e){setError(e.message)}}return <Shell><div className="heading"><div><p className="eyebrow">ADMINISTRATION</p><h1>Admin overview</h1><p className="muted">Manage users and the shared product catalog.</p></div></div>{error&&<div className="alert">{error}</div>}<div className="stats">{(stats?[["Users",stats.users],["Admins",stats.admins],["Products",stats.products]]:[]).map(([label,value])=><div className="panel stat" key={label}><span>{label}</span><strong>{value}</strong></div>)}</div><section className="panel"><h2>Users</h2><div className="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Products</th><th>Action</th></tr></thead><tbody>{users.map(u=><tr key={u.id}><td>{u.name}</td><td>{u.email}</td><td><span className="badge">{u.role}</span></td><td>{u.products_count}</td><td>{u.role==="user"&&<button className="danger" onClick={()=>delUser(u)}>Delete</button>}</td></tr>)}</tbody></table></div></section><section className="panel"><h2>All products</h2><ProductTable products={products} admin onEdit={()=>setError("Edit products from the owner's product workspace.")} onDelete={delProduct}/></section></Shell>}
+function Detail(){const {id}=useParams();return <Navigate to="/" replace/>}
+import {useParams} from "react-router-dom";
+function AppRoutes(){return <Routes><Route path="/login" element={<Login/>}/><Route path="/" element={<Guard><Dashboard/></Guard>}/><Route path="/products/:id" element={<Guard><Detail/></Guard>}/><Route path="/admin" element={<Guard admin><Admin/></Guard>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes>}
+export default function App(){return <AuthProvider><BrowserRouter><AppRoutes/></BrowserRouter></AuthProvider>}
