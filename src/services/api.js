@@ -1,7 +1,7 @@
 const API_BASE = `${import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"}/api/v1`;
 export async function api(path, options = {}) {
  const token=localStorage.getItem("product_token");
- const headers={"Accept":"application/json","Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`:{}),...options.headers};
+ const headers={"Accept":"application/json","Content-Type":"application/json",...(token?{Authorization:`Bearer ${token}`}:{}),...options.headers};
  const response=await fetch(`${API_BASE}${path}`,{...options,headers});
  const body=await response.json().catch(()=>({}));
  if(!response.ok){const message=body.message||Object.values(body.errors||{}).flat()[0]||"Request failed";throw new Error(message);}
