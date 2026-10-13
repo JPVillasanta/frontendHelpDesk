@@ -1,6 +1,0 @@
-import {useEffect,useState} from "react";
-const blank={name:"",description:"",price:"",image_url:""};
-export default function ProductForm({initial,onSubmit,onCancel,busy}){const [form,setForm]=useState(initial||blank);useEffect(()=>setForm(initial||blank),[initial]);
- function change(e){setForm({...form,[e.target.name]:e.target.value});}
- function submit(e){e.preventDefault();onSubmit({...form,price:Number(form.price)});}
- return <form className="panel form" onSubmit={submit}><h2>{initial?"Edit product":"Add a product"}</h2><label>Name<input required maxLength="150" name="name" value={form.name} onChange={change}/></label><label>Description<textarea name="description" value={form.description||""} onChange={change}/></label><label>Price<input required min="0" step="0.01" type="number" name="price" value={form.price} onChange={change}/></label><label>Image URL<input type="url" name="image_url" value={form.image_url||""} onChange={change}/></label><div className="actions"><button disabled={busy}>{busy?"Saving…":"Save product"}</button>{onCancel&&<button type="button" className="secondary" onClick={onCancel}>Cancel</button>}</div></form>}
