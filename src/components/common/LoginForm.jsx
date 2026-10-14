@@ -10,5 +10,8 @@ export default function LoginForm({ onSubmit, busy, error }) {
     <label>Username<input required autoComplete="username" value={username} onChange={(event) => setUsername(event.target.value)} /></label>
     <label>Password<input required type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
     <button disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+    
+    <h1>Username: itadmin</h1>
+    <h1>Pass: helpdesk123</h1>
   </form>;
 }
