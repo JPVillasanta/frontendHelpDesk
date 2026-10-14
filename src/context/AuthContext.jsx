@@ -1,32 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import AuthContext from './auth-context';
-import { authService } from '../services/authService';
+
+const LOGIN_USERNAME = 'itadmin';
+const LOGIN_PASSWORD = 'helpdesk123';
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(() => Boolean(localStorage.getItem('product_token')));
+  const [user, setUser] = useState(() => localStorage.getItem('helpdesk_authenticated') === 'true' ? { username: LOGIN_USERNAME } : null);
 
-  useEffect(() => {
-    if (!localStorage.getItem('product_token')) return undefined;
-    let active = true;
-    authService.currentUser()
-      .then((result) => { if (active) setUser(result.user); })
-      .catch(() => localStorage.removeItem('product_token'))
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, []);
-
-  async function login(credentials) {
-    const result = await authService.login(credentials);
-    localStorage.setItem('product_token', result.token);
-    setUser(result.user);
+  function login({ username, password }) {
+    if (username !== LOGIN_USERNAME || password !== LOGIN_PASSWORD) {
+      throw new Error('Incorrect username or password. Please try again.');
+    }
+    localStorage.setItem('helpdesk_authenticated', 'true');
+    setUser({ username: LOGIN_USERNAME });
   }
 
-  async function logout() {
-    try { await authService.logout(); } catch { /* Local logout still completes if the API is unavailable. */ }
-    localStorage.removeItem('product_token');
+  function logout() {
+    localStorage.removeItem('helpdesk_authenticated');
     setUser(null);
   }
 
-  return <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading: false, login, logout }}>{children}</AuthContext.Provider>;
 }

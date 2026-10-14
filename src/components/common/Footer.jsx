@@ -1,3 +1,1 @@
-export default function Footer() {
-  return <footer>ProductDesk · CCS112 lab starter</footer>;
-}
+export default function Footer() { return <footer>Helpdesk Ticket Management · CCS112 lab app</footer>; }

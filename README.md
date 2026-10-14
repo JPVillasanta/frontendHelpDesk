@@ -1,25 +1,17 @@
-# ProductDesk React Client
+# Helpdesk Ticket Management System
 
-React + Vite single-page client for the Laravel JSON API. Authentication uses short-lived bearer tokens issued by the API; role and product ownership are enforced by the backend.
+React + Vite SPA frontend for a Laravel REST API. The exam login is client-side only (`itadmin` / `helpdesk123`) as required by the brief. Ticket data is stored by Laravel in the configured database.
 
-## Local run
+## Local setup
 
-1. Start the Laravel API at `http://127.0.0.1:8000`.
-2. Copy `.env.example` to `.env` and set `VITE_API_URL=http://127.0.0.1:8000`.
-3. Run `npm install`, then `npm run dev` and open the Vite URL.
-4. For a production build, run `npm run build`.
+1. Install Git, Node.js, PHP, and Composer.
+2. Clone the frontend and backend repositories.
+3. In the backend: `composer install`, copy `.env.example` to `.env`, configure a database, then run `php artisan key:generate`, `php artisan migrate`, and `php artisan serve`.
+4. In this frontend: copy `.env.example` to `.env`, set `VITE_API_URL=http://127.0.0.1:8000`, run `npm install`, then `npm run dev`.
+5. Open the Vite URL. Sign in with `itadmin` / `helpdesk123`.
 
-Demo-only local accounts: `admin@example.com` and `user@example.com`, password `ChangeMe123!`. Do not seed these credentials into a public database.
+## API
 
-## Source layout
+The frontend calls `GET/POST /api/v1/tickets` and `GET/PUT/DELETE /api/v1/tickets/{id}`. Configure `VITE_API_URL` to the backend origin without `/api/v1`.
 
-- `components/common`: layout, navigation, login fields, loading, confirmation, pagination
-- `components/user`: product card, list, and form
-- `components/admin`: stats and user/product tables
-- `pages/user` and `pages/admin`: route-level screens
-- `context` and `hooks`: authentication and role helpers
-- `services`: API transport and feature-specific API calls
-
-## Render Static Site
-
-Build command: `npm install && npm run build`; publish directory: `dist`. Set `VITE_API_URL` to the deployed backend origin without `/api/v1`. Keep `public/_redirects` so direct SPA routes work. Set the backend `CORS_ALLOWED_ORIGINS` to the exact deployed frontend URL. Vite environment variables are embedded at build time, so rebuild after changing them.
+The login is intentionally client-side for this lab requirement. It is not suitable as production authentication. Do not commit `.env` files.
